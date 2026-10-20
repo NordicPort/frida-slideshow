@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FRIDA Slideshow</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+  img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: contain; opacity: 0; z-index: 0;
+  }
+  img.fade { transition: opacity var(--fade) ease-in-out; }
+</style>
+</head>
+<body>
+<script>
+  // Inställningar
+  const SLIDES   = ["img/Slide1.png", "img/Slide2.png"]; // OBS: skiftlägeskänsligt på GitHub Pages
+  const SHOW_MS  = 10000; // tid per bild
+  const FADE_MS  = 1000;  // övertoningstid
+
+  document.documentElement.style.setProperty("--fade", FADE_MS + "ms");
+
+  const imgs = SLIDES.map(src => {
+    const el = new Image();
+    el.src = src;
+    el.alt = "";
+    document.body.appendChild(el);
+    return el;
+  });
+
+  let i = 0;
+  imgs[0].style.opacity = 1;
+
+  setInterval(() => {
+    const prev = imgs[i];
+    i = (i + 1) % imgs.length;
+    const next = imgs[i];
+
+    // Gamla bilden ligger kvar helt synlig under – ingen svart bakgrund syns
+    prev.style.zIndex = 1;
+    next.style.zIndex = 2;
+    next.classList.add("fade");
+    next.style.opacity = 1;
+
+    // När övertoningen är klar: dölj gamla utan animation
+    setTimeout(() => {
+      prev.classList.remove("fade");
+      prev.style.opacity = 0;
+      prev.style.zIndex = 0;
+      next.classList.remove("fade");
+    }, FADE_MS + 50);
+  }, SHOW_MS);
+
+  // Klick = helskärm
+  document.addEventListener("click", () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  });
+
+  // Ladda om varje timme för att få med nya bilder efter push
+  setTimeout(() => location.reload(), 60 * 60 * 1000);
+</script>
+</body>
+</html>
